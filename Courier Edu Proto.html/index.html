@@ -126,12 +126,6 @@
     z-index: 20;
   }
   .icon-btn img { width: 20px; height: 20px; }
-  /* Demand's header icon SVGs already bake in their own white circle + shadow,
-     so this modifier drops the wrapper's duplicate styling instead of
-     shrinking the asset into a second circle. Surge's assets don't include
-     that, so Surge keeps the default wrapper above, unchanged. */
-  .icon-btn.plain { background: none; box-shadow: none; }
-  .icon-btn.plain img { width: 48px; height: 48px; }
   .icon-btn.left { left: 8px; }
   .icon-btn.right { right: 8px; }
 
@@ -147,9 +141,14 @@
   .fare-pill .dollar { color: #05944f; }
 
   .map-controls { position: absolute; bottom: 122px; left: 16px; right: 16px; height: 48px; z-index: 20; }
-  .map-controls img.fab { position: absolute; width: 48px; height: 48px; }
-  .map-controls img.fab.left { left: 0; }
-  .map-controls img.fab.right { right: 0; }
+  .map-controls .fab {
+    position: absolute; width: 48px; height: 48px; border-radius: 48px;
+    background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .map-controls .fab img { width: 24px; height: 24px; }
+  .map-controls .fab.left { left: 0; }
+  .map-controls .fab.right { right: 0; }
 
   .go-btn {
     position: absolute; left: 50%; bottom: 122px; transform: translateX(-50%);
@@ -175,13 +174,15 @@
     position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
     width: 48px; height: 4px; border-radius: 100px; background: #e2e2e2;
   }
-  /* Figma now bakes both leading + trailing sheet icons into a single
-     wide image (rather than two separate icon buttons) — positioned at
-     the sheet's own vertical center, same as before. */
-  .sheet .action-strip {
-    position: absolute; top: calc(50% + 4px); left: 8px; transform: translateY(-50%);
-    width: 329.167px; height: 48px;
+  /* Sheet's leading/trailing icons are bare glyphs (no background circle),
+     centered on the sheet's own vertical center — same centerline as the text. */
+  .sheet .action-icon {
+    position: absolute; top: calc(50% + 4px); transform: translateY(-50%);
+    width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
   }
+  .sheet .action-icon img { width: 20px; height: 20px; }
+  .sheet .action-icon.left { left: 8px; }
+  .sheet .action-icon.right { right: 8px; }
 
   .text-stack {
     position: absolute; left: 22px; right: 22px; top: 0; bottom: 0;
@@ -193,7 +194,7 @@
   .title-offline-anchor, .swap-anchor {
     position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
   }
-  .title-offline-anchor { margin-top: 4px; } /* matches action-strip's calc(50% + 4px) centerline */
+  .title-offline-anchor { margin-top: 4px; } /* matches action icons' calc(50% + 4px) centerline */
   .swap-anchor { margin-top: 4px; }
 
   .text-stack .title {
@@ -277,30 +278,31 @@
       <!-- ============ SURGE ============ -->
       <section class="screen active" data-screen="surge">
         <div class="map-layer">
-          <div class="crop-wrap basemap"><img src="assets/d024c80f-fd31-4ec3-a21b-6c63e2ae8646.png" /></div>
-          <img class="heatmap small" src="assets/7760ead6-4f1c-4eba-af45-59cb48f75830.png" />
-          <div class="crop-wrap roads"><img src="assets/bbe39c81-72f1-4388-8bd2-849c9453f5a8.png" /></div>
-          <img class="marker" style="left:158px; top:187px; width:88px;" src="assets/6ef26b53-2a0f-4941-80ce-b882272c3b45.svg" />
-          <img class="puck" style="left:119px; top:248px; width:72px; height:72px; transform:rotate(6.68deg);" src="assets/f8142b3d-bb58-49c7-93fe-46397de88698.png" />
+          <div class="crop-wrap basemap"><img src="assets/48b2a3f5-070c-4444-8854-43940b9e1476.png" /></div>
+          <img class="heatmap small" src="assets/ed363e32-0e55-481f-8f3e-856a81b7bb81.png" />
+          <div class="crop-wrap roads"><img src="assets/04df2152-52ef-4491-80b5-5388440006d4.png" /></div>
+          <img class="marker" style="left:158px; top:187px; width:88px;" src="assets/3b791a03-c750-4457-8216-92001e7e35fc.svg" />
+          <img class="puck" style="left:119px; top:248px; width:72px; height:72px; transform:rotate(6.68deg);" src="assets/0932425c-5558-40af-8e37-089035d05822.png" />
         </div>
 
-        <div class="icon-btn left plain"><img src="assets/1ed32132-5561-469f-8356-890d5b3d2e21.svg" /></div>
+        <div class="icon-btn left"><img src="assets/a5b2e868-5f9f-4780-9bf4-eed7e0021f6c.svg" /></div>
         <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
-        <div class="icon-btn right plain"><img src="assets/137de415-365c-4df0-ba2b-e88403cf59ba.svg" /></div>
+        <div class="icon-btn right"><img src="assets/bae35e12-191d-4a73-ab56-5501f7dea112.svg" /></div>
 
         <div class="map-controls">
-          <img class="fab left" src="assets/10e25b90-04d3-42ff-b41f-288becfedd9a.svg" />
-          <img class="fab right" src="assets/f282bfd2-af2f-4c1d-81b9-076842335e27.svg" />
+          <div class="fab left"><img src="assets/728cf09e-944a-411f-857f-e2092a7cfa78.svg" /></div>
+          <div class="fab right"><img src="assets/1e6e8067-157e-47ef-84dc-f2b8677250e5.svg" /></div>
         </div>
         <div class="go-btn">
-          <img src="assets/63533aaf-cee2-4de7-b5f6-d965a607395b.svg" />
-          <img src="assets/f999369e-f49f-4dd9-8552-46a0f6e14c94.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <img src="assets/4b521d34-126b-45de-8027-a658847ebbac.svg" />
+          <img src="assets/3b553c84-ce02-44d0-be80-a57dddc03301.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
           <div class="go-label">GO</div>
         </div>
 
         <div class="sheet">
           <div class="grabber"></div>
-          <img class="action-strip" src="assets/51ca755f-0496-4f0b-91f6-61e2eb1f2afd.svg" />
+          <div class="action-icon left"><img src="assets/37b6b177-c87e-4052-bf80-6d6423fc56be.svg" /></div>
+          <div class="action-icon right"><img src="assets/cce5dfef-35b9-4c5e-9985-749227dc8ca4.svg" /></div>
           <div class="text-stack">
             <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
             <div class="swap-anchor">
@@ -315,29 +317,30 @@
       <!-- ============ DEMAND ============ -->
       <section class="screen" data-screen="demand">
         <div class="map-layer">
-          <div class="crop-wrap basemap"><img src="assets/bf59e3ed-6458-4310-9c13-82c91ce1c533.png" /></div>
-          <div class="crop-wrap basemap2"><img src="assets/3c15f045-370b-418d-a177-f523196c7e62.png" /></div>
-          <div class="crop-wrap roads"><img src="assets/000c83ca-76ed-4d02-995d-910059c6585d.png" /></div>
-          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/f80fa8d0-cba8-41a2-8072-f2a6fd67d814.png" />
+          <div class="crop-wrap basemap"><img src="assets/a80a54a4-c3d7-4731-83f9-79c20795f454.png" /></div>
+          <div class="crop-wrap basemap2"><img src="assets/f7fe0804-efcf-4d10-9342-592d3da97f23.png" /></div>
+          <div class="crop-wrap roads"><img src="assets/08b52c42-b61c-46cd-bca2-3b6a564418d4.png" /></div>
+          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/62760944-d084-457e-9042-e1d48807d7ac.png" />
         </div>
 
-        <div class="icon-btn left plain"><img src="assets/aaaaa304-2f52-46f2-bad8-4b952b70718d.svg" /></div>
+        <div class="icon-btn left"><img src="assets/14697161-6c74-46d6-a3e0-9d90a9b0b650.svg" /></div>
         <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
-        <div class="icon-btn right plain"><img src="assets/52e324ce-b202-45c8-9d36-1d6154a14c85.svg" /></div>
+        <div class="icon-btn right"><img src="assets/f24c2f85-2017-41ed-b1e7-03704da5230c.svg" /></div>
 
         <div class="map-controls">
-          <img class="fab left" src="assets/23566ef1-dd84-436b-b46d-213785a3889a.svg" />
-          <img class="fab right" src="assets/7b678d31-7060-435b-945f-3e1d113cb76b.svg" />
+          <div class="fab left"><img src="assets/94ab11d3-c4e5-409e-bcfd-0c55c869ad9a.svg" /></div>
+          <div class="fab right"><img src="assets/bf3c38ea-3559-48b4-9ee2-2af37a56d884.svg" /></div>
         </div>
         <div class="go-btn">
-          <img src="assets/010e3e1a-fa01-4ff0-bb3e-73294ff0fa38.svg" />
-          <img src="assets/05066b7a-2f2c-4139-ad75-10e663e7f47f.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <img src="assets/ca901621-af05-407e-8bf7-355e1585478f.svg" />
+          <img src="assets/836e0661-44e3-4ca3-b7ea-02deca3d9752.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
           <div class="go-label">GO</div>
         </div>
 
         <div class="sheet">
           <div class="grabber"></div>
-          <img class="action-strip" src="assets/42269530-b980-411e-a858-6310b12c54e6.svg" />
+          <div class="action-icon left"><img src="assets/7c6a2165-770f-43ff-ba99-43bb24a59b6c.svg" /></div>
+          <div class="action-icon right"><img src="assets/e9a121b9-ee51-4408-9873-a4bb73246b44.svg" /></div>
           <div class="text-stack">
             <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
             <div class="swap-anchor">
@@ -352,30 +355,31 @@
       <!-- ============ BOOST ============ -->
       <section class="screen" data-screen="boost">
         <div class="map-layer">
-          <div class="crop-wrap basemap"><img src="assets/fee842f8-cd7e-4451-b7c0-5a6e9cbf488c.png" /></div>
-          <div class="crop-wrap roads"><img src="assets/962ed93b-af2a-4179-a5e3-71de520a0fc1.png" /></div>
-          <img style="position:absolute; left:185px; top:98px; width:175.5px; height:235px; object-fit:cover;" src="assets/4ba70094-24e5-40f6-b2b8-29c6ebc3b60d.png" />
-          <img style="position:absolute; left:212px; top:164px; width:140px; height:86px; object-fit:contain;" src="assets/71283d7e-f796-49c6-8faf-55b96627f1b1.png" />
-          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/489d5c1f-0dd0-45fb-a490-437937621d23.png" />
+          <div class="crop-wrap basemap"><img src="assets/9e5679af-c0b7-4655-a2f4-f3598a376a6e.png" /></div>
+          <div class="crop-wrap roads"><img src="assets/01172794-704e-478d-9e48-deaa684e7d6f.png" /></div>
+          <img style="position:absolute; left:185px; top:98px; width:175.5px; height:235px; object-fit:cover;" src="assets/d2c17d07-4050-49ed-8d09-a7f84afc0e42.png" />
+          <img style="position:absolute; left:212px; top:164px; width:140px; height:86px; object-fit:contain;" src="assets/0f20a387-5b8e-4564-9c7f-a280eccafed5.png" />
+          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/e7ac3af4-1c5c-4da1-9e04-b378e8254de4.png" />
         </div>
 
-        <div class="icon-btn left plain"><img src="assets/473a9623-0484-4dcd-8621-fbbb19488249.svg" /></div>
+        <div class="icon-btn left"><img src="assets/040a3000-a974-4d85-addd-3403940fc5cd.svg" /></div>
         <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
-        <div class="icon-btn right plain"><img src="assets/e4ba5637-6bbb-40ea-9c61-3fb3c44fafed.svg" /></div>
+        <div class="icon-btn right"><img src="assets/7dc8dd76-ad35-4d16-abf7-5ecd38fcd36e.svg" /></div>
 
         <div class="map-controls">
-          <img class="fab left" src="assets/b6f85cad-efe9-4979-9c81-153c97c4eb1e.svg" />
-          <img class="fab right" src="assets/608e7ebb-6532-483b-a69d-80869f0cc402.svg" />
+          <div class="fab left"><img src="assets/ce1be5d4-4c15-4797-8b17-3c4a59a54341.svg" /></div>
+          <div class="fab right"><img src="assets/02f0b092-59b0-4f94-b9cb-edc6a372bdc9.svg" /></div>
         </div>
         <div class="go-btn">
-          <img src="assets/60bc0f4d-c315-4f34-b25c-5d4e4060961c.svg" />
-          <img src="assets/407dc06e-219d-480f-94f2-56a5f84e1644.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <img src="assets/2f4e3146-f546-4342-8880-9228caf80103.svg" />
+          <img src="assets/14fb3ee6-2809-4f3d-9152-6836afb5c302.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
           <div class="go-label">GO</div>
         </div>
 
         <div class="sheet">
           <div class="grabber"></div>
-          <img class="action-strip" src="assets/5972ee42-6753-4000-aa06-91bee6162b64.svg" />
+          <div class="action-icon left"><img src="assets/267451f2-a1ad-4c38-ab20-24f337d204e2.svg" /></div>
+          <div class="action-icon right"><img src="assets/f0d5fbe8-6857-4f2c-84ca-7e47953e07e9.svg" /></div>
           <div class="text-stack">
             <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
             <div class="swap-anchor">
@@ -390,28 +394,29 @@
       <!-- ============ LUNCH ============ -->
       <section class="screen" data-screen="lunch">
         <div class="map-layer">
-          <div class="crop-wrap basemap"><img src="assets/7c9ee6b3-d250-4758-9a9c-f7126c045d49.png" /></div>
-          <div class="crop-wrap roads"><img src="assets/64d61061-f5e6-40c7-a9b3-a73c9aa322e0.png" /></div>
-          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/1c6b2201-3c0f-43a1-8167-b03b24d3af17.png" />
+          <div class="crop-wrap basemap"><img src="assets/33cd3782-a142-4b6c-b8b4-f7c1ae94e0f9.png" /></div>
+          <div class="crop-wrap roads"><img src="assets/8d475681-a3ea-4a3d-984c-e65be75fe76f.png" /></div>
+          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/0d9002b6-1f00-4d6b-990a-3f4286e99853.png" />
         </div>
 
-        <div class="icon-btn left plain"><img src="assets/ec3a4363-9c46-47b1-b931-c66fcdcc6ad5.svg" /></div>
+        <div class="icon-btn left"><img src="assets/15c85033-2c99-4b9b-a59a-17b0c34ac776.svg" /></div>
         <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
-        <div class="icon-btn right plain"><img src="assets/97d0f56f-c75d-4a60-966d-159a35b84d4e.svg" /></div>
+        <div class="icon-btn right"><img src="assets/6f31e2b6-e6d0-4458-a3e4-2dcbbd52a95b.svg" /></div>
 
         <div class="map-controls">
-          <img class="fab left" src="assets/45fa1b40-56b6-4359-931d-44da585f2204.svg" />
-          <img class="fab right" src="assets/12a0ad6e-0f54-47f7-acea-a5f9410fb007.svg" />
+          <div class="fab left"><img src="assets/f7d8dcf8-eaa5-4831-b97e-8163fbec6a12.svg" /></div>
+          <div class="fab right"><img src="assets/97a1c32b-2cd6-4bf2-986b-fdeef37cd721.svg" /></div>
         </div>
         <div class="go-btn">
-          <img src="assets/3da28443-57ca-498e-87dc-d1168535681e.svg" />
-          <img src="assets/fb0b4133-25b0-4e2a-863a-a49a15fc6898.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <img src="assets/9837505f-bb8f-4edb-816a-dd22fa7c4567.svg" />
+          <img src="assets/09090a75-06c9-4574-83ac-362a566f90d9.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
           <div class="go-label">GO</div>
         </div>
 
         <div class="sheet">
           <div class="grabber"></div>
-          <img class="action-strip" src="assets/2c0ab31b-4539-4eca-b297-c2f5ccb023ce.svg" />
+          <div class="action-icon left"><img src="assets/6b5846aa-3552-421b-b8ff-001ec9db39b0.svg" /></div>
+          <div class="action-icon right"><img src="assets/f57d8925-9308-476f-83e6-dd12b1be73f0.svg" /></div>
           <div class="text-stack">
             <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
             <div class="swap-anchor">
@@ -426,28 +431,29 @@
       <!-- ============ DINNER ============ -->
       <section class="screen" data-screen="dinner">
         <div class="map-layer">
-          <div class="crop-wrap basemap"><img src="assets/85371758-27c2-42c7-9e63-bcc51c109f7a.png" /></div>
-          <div class="crop-wrap roads"><img src="assets/e84bcc01-f691-4d4f-8261-033c07c4642c.png" /></div>
-          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/166e31ec-a5d2-49db-8cf1-d77c1b848e2c.png" />
+          <div class="crop-wrap basemap"><img src="assets/f48c0ac4-ca76-4cae-9488-8b77842da7ef.png" /></div>
+          <div class="crop-wrap roads"><img src="assets/5b1cad7e-4386-4f6e-b8c8-4852d150e796.png" /></div>
+          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/4f4c2b3f-b544-49cf-ad33-815818a8bea7.png" />
         </div>
 
-        <div class="icon-btn left plain"><img src="assets/44e230ea-6d87-41f5-b47a-79561976c519.svg" /></div>
+        <div class="icon-btn left"><img src="assets/adaaf994-5f6b-4ea6-b0ab-2f2e458d4e72.svg" /></div>
         <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
-        <div class="icon-btn right plain"><img src="assets/9b18ae7e-480c-462d-aab0-bf542c28845a.svg" /></div>
+        <div class="icon-btn right"><img src="assets/801947e4-4cb9-4bcd-8a7e-5dc6a236bfa5.svg" /></div>
 
         <div class="map-controls">
-          <img class="fab left" src="assets/dda216b5-6aac-437b-ad54-b6a549002f81.svg" />
-          <img class="fab right" src="assets/23f881c4-83fa-43dc-ba3e-927cbcd99693.svg" />
+          <div class="fab left"><img src="assets/4d2513d9-330c-445b-a309-f289f39f965c.svg" /></div>
+          <div class="fab right"><img src="assets/b9918d79-3e49-4b66-8aea-837bd7be2d8d.svg" /></div>
         </div>
         <div class="go-btn">
-          <img src="assets/d91d85c9-1837-42fa-aa56-7f529e4e8487.svg" />
-          <img src="assets/af355f8f-75bb-4901-861d-eff4579855b6.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <img src="assets/cbc891cf-9232-4aa7-acb8-7511d2485eeb.svg" />
+          <img src="assets/9b9f9d02-c59c-4522-8cf1-c18550f397b5.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
           <div class="go-label">GO</div>
         </div>
 
         <div class="sheet">
           <div class="grabber"></div>
-          <img class="action-strip" src="assets/d5b9e407-a8eb-41a4-9c6b-de45dee8ac03.svg" />
+          <div class="action-icon left"><img src="assets/6775e99b-fb9d-4b16-aa8a-fdac60809c2a.svg" /></div>
+          <div class="action-icon right"><img src="assets/94cf90d1-ea36-4553-87ff-5f0b77c9d252.svg" /></div>
           <div class="text-stack">
             <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
             <div class="swap-anchor">
@@ -462,28 +468,29 @@
       <!-- ============ GREETING ============ -->
       <section class="screen" data-screen="greeting">
         <div class="map-layer">
-          <div class="crop-wrap basemap"><img src="assets/5796c131-61a0-45e5-a069-2278e35ca6bb.png" /></div>
-          <div class="crop-wrap roads"><img src="assets/a0cd525b-5208-4b73-8791-c9b664a7f617.png" /></div>
-          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/526d2195-19b7-4402-abe3-27fb8222566e.png" />
+          <div class="crop-wrap basemap"><img src="assets/f6442ca8-635d-4362-8382-b14719dacc72.png" /></div>
+          <div class="crop-wrap roads"><img src="assets/a3ba8317-c207-4aaf-86ae-f98ebfef18b7.png" /></div>
+          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/87ea4523-d1dd-4f33-9c04-bb407a07b41c.png" />
         </div>
 
-        <div class="icon-btn left plain"><img src="assets/540845a8-25db-4299-9f19-725c89bd68a7.svg" /></div>
+        <div class="icon-btn left"><img src="assets/03128a73-d941-4059-a419-86398dd0f43c.svg" /></div>
         <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
-        <div class="icon-btn right plain"><img src="assets/70c8c638-9af0-496e-80ed-230523342841.svg" /></div>
+        <div class="icon-btn right"><img src="assets/4911d4ac-19e0-428c-bceb-36ac4d36ae45.svg" /></div>
 
         <div class="map-controls">
-          <img class="fab left" src="assets/905bae4a-2674-45ec-b0dc-c6a1c139209a.svg" />
-          <img class="fab right" src="assets/5ecdceb5-21f8-4d3d-8f12-7964d32b1ded.svg" />
+          <div class="fab left"><img src="assets/03d3368e-fc3e-47d2-9782-69db42a71033.svg" /></div>
+          <div class="fab right"><img src="assets/1a39b84f-f3f4-401d-b99f-81588a5191fe.svg" /></div>
         </div>
         <div class="go-btn">
-          <img src="assets/7019e218-39b8-4b5b-b894-2d8c91bc8234.svg" />
-          <img src="assets/4bc5ba7c-a14b-4965-98b0-44f656eb0924.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <img src="assets/bd777fd1-05bf-4451-af0e-ee671f6d6ecb.svg" />
+          <img src="assets/6748d131-1672-46e4-9ef2-4176e5a77347.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
           <div class="go-label">GO</div>
         </div>
 
         <div class="sheet">
           <div class="grabber"></div>
-          <img class="action-strip" src="assets/0ddd4b98-5d57-440f-ad51-11f7e7411172.svg" />
+          <div class="action-icon left"><img src="assets/aa68cc58-5f44-467d-ae35-ee6463d31779.svg" /></div>
+          <div class="action-icon right"><img src="assets/933ee4b9-a585-46cb-a35c-56b22d767cb8.svg" /></div>
           <div class="text-stack">
             <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
             <div class="swap-anchor">

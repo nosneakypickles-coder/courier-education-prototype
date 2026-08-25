@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Courier Education Prototype</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 48px 16px;
+    background: #d9d9d9;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  /* ---------- Surface ---------- */
+  .surface {
+    background: #fff;
+    border-radius: 24px;
+    padding: 56px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 28px;
+  }
+  .surface h1 { font-size: 24px; font-weight: 600; color: #222; margin: 0; align-self: flex-start; }
+  .surface p.sub { margin: -18px 0 0; color: #888; font-size: 16px; align-self: flex-start; }
+
+  .layout-row {
+    display: grid;
+    grid-template-columns: auto 24px auto auto;
+    align-items: flex-start;
+    margin-top: 16px;
+  }
+  .layout-row .toggle { grid-column: 1; grid-row: 1; }
+  .layout-row .phone-shell { grid-column: 3; grid-row: 1; justify-self: start; }
+  .layout-row .toggle-mirror { grid-column: 4; grid-row: 1; visibility: hidden; pointer-events: none; }
+
+  /* ---------- Toggle (from Figma node 38:2032) ---------- */
+  .toggle {
+    background: rgba(217,217,217,0.35);
+    border-radius: 12px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    width: fit-content;
+    flex-shrink: 0;
+  }
+  .toggle button {
+    all: unset;
+    display: block;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    font-size: 15px;
+    color: #545454;
+    opacity: 0.6;
+    padding: 12px 12px;
+    border-radius: 8px;
+    text-align: left;
+    white-space: nowrap;
+    transition: background 0.2s ease, opacity 0.2s ease;
+  }
+  .toggle button.active {
+    background: #fff;
+    color: #545454;
+    opacity: 1;
+  }
+  .toggle button:disabled { opacity: 0.35; cursor: default; }
+
+  /* ---------- Phone ---------- */
+  .phone-shell {
+    width: 388px;
+    height: 720px;
+    background: #111;
+    border-radius: 44px;
+    padding: 14px;
+    box-shadow: 0 20px 45px rgba(0,0,0,0.18), 0 2px 6px rgba(0,0,0,0.1);
+  }
+  .phone {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: #eee;
+    border-radius: 30px;
+    overflow: hidden;
+  }
+  .notch {
+    position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+    width: 120px; height: 24px; background: #111; border-radius: 0 0 16px 16px; z-index: 60;
+  }
+
+  /* Each toggle state is a full-screen layer inside the phone; only one is
+     shown at a time. Animations keep running underneath (harmless), so
+     switching back to a screen mid-cycle feels alive rather than reset. */
+  .screen { position: absolute; inset: 0; display: none; }
+  .screen.active { display: block; }
+
+  .map-layer { position: absolute; inset: 0; overflow: hidden; }
+  .map-layer .crop-wrap { position: absolute; inset: 0; overflow: hidden; }
+  .map-layer .crop-wrap.basemap img,
+  .map-layer .crop-wrap.roads img {
+    position: absolute; max-width: none;
+    left: -230.56%; width: 461.11%;
+  }
+  .map-layer .crop-wrap.basemap img { top: -10.44%; height: 144.55%; }
+  .map-layer .crop-wrap.roads img { top: -10.47%; height: 145%; opacity: 0.9; }
+  .map-layer .crop-wrap.basemap2 img { position: absolute; max-width: none; left: 0; top: 0.78%; width: 100%; height: 99.22%; }
+  .map-layer .heatmap { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .map-layer .heatmap.small { inset: auto; left: 15px; top: 62px; width: 300px; height: 258px; }
+  .map-layer .marker { position: absolute; left: 133px; top: 140px; width: 88px; }
+  .map-layer .puck { position: absolute; left: 72px; top: 206px; width: 72px; height: 72px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)); }
+
+  .icon-btn {
+    position: absolute; top: 40px;
+    width: 48px; height: 48px; border-radius: 48px;
+    background: #fff; box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 20;
+  }
+  .icon-btn img { width: 20px; height: 20px; }
+  /* Demand's header icon SVGs already bake in their own white circle + shadow,
+     so this modifier drops the wrapper's duplicate styling instead of
+     shrinking the asset into a second circle. Surge's assets don't include
+     that, so Surge keeps the default wrapper above, unchanged. */
+  .icon-btn.plain { background: none; box-shadow: none; }
+  .icon-btn.plain img { width: 48px; height: 48px; }
+  .icon-btn.left { left: 8px; }
+  .icon-btn.right { right: 8px; }
+
+  .header-row {
+    position: absolute; top: 40px; left: 0; right: 0; height: 48px;
+    display: flex; align-items: center; justify-content: center; z-index: 20;
+  }
+  .fare-pill {
+    background: #000; color: #fff; padding: 0 16px; height: 48px; border-radius: 100px;
+    display: flex; align-items: center; font-size: 22px; font-weight: 600;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  }
+  .fare-pill .dollar { color: #05944f; }
+
+  .map-controls { position: absolute; bottom: 122px; left: 16px; right: 16px; height: 48px; z-index: 20; }
+  .map-controls img.fab { position: absolute; width: 48px; height: 48px; }
+  .map-controls img.fab.left { left: 0; }
+  .map-controls img.fab.right { right: 0; }
+
+  .go-btn {
+    position: absolute; left: 50%; bottom: 122px; transform: translateX(-50%);
+    width: 72px; height: 72px; z-index: 21;
+  }
+  .go-btn img { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .go-btn .go-label {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 24px; font-weight: 600; font-family: inherit;
+  }
+
+  /* ---------- Sheet (the animated part) — white fully extended to the true
+     bottom edge, content centered on the same line as the action icons ---------- */
+  .sheet {
+    position: absolute; left: 0; right: 0; bottom: 0;
+    background: #fff;
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.12);
+    height: 106px;
+    z-index: 20;
+  }
+  .sheet .grabber {
+    position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
+    width: 48px; height: 4px; border-radius: 100px; background: #e2e2e2;
+  }
+  /* Figma now bakes both leading + trailing sheet icons into a single
+     wide image (rather than two separate icon buttons) — positioned at
+     the sheet's own vertical center, same as before. */
+  .sheet .action-strip {
+    position: absolute; top: calc(50% + 4px); left: 8px; transform: translateY(-50%);
+    width: 329.167px; height: 48px;
+  }
+
+  .text-stack {
+    position: absolute; left: 22px; right: 22px; top: 0; bottom: 0;
+    overflow: hidden;
+  }
+  /* Anchors sit dead-center on the sheet (translateY(-50%) against their own
+     intrinsic height), so title/description are centered as a unit and share
+     the action icons' centerline. */
+  .title-offline-anchor, .swap-anchor {
+    position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+  }
+  .title-offline-anchor { margin-top: 4px; } /* matches action-strip's calc(50% + 4px) centerline */
+  .swap-anchor { margin-top: 4px; }
+
+  .text-stack .title {
+    text-align: center; font-size: 24px; font-weight: 500; color: #000;
+    animation-duration: 8s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+  }
+  .title-offline { animation-name: titleCycle; }
+
+  /* Title + description move together as one block, so they never
+     pass over each other — same up-and-out / up-and-in timing as the
+     offline title, just offset by half the cycle. */
+  .swap-block {
+    animation-name: titleCycle;
+    animation-duration: 8s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-delay: -4s;
+  }
+  .swap-block .swap-title {
+    text-align: center; font-size: 24px; font-weight: 500; color: #000;
+  }
+  .swap-block .desc {
+    text-align: center; font-size: 18px; color: #000; opacity: 0.85;
+    margin-top: 2px;
+  }
+
+  /* Both titles share one cycle (8s = two symmetric halves of 3s hold + 1s move).
+     Offset by half a cycle via negative delay, so at any instant one is holding
+     center while the other is invisible below.
+
+     Exit and entrance are shaped asymmetrically on purpose:
+     - Exit fades to fully transparent within the first half of its move,
+       well before reaching the grabber, then keeps drifting up invisibly.
+     - Entrance stays invisible for its first half (still climbing from
+       below), then fades in only over the second half — so it visibly
+       "follows" a beat behind the outgoing text instead of crossing it
+       in lockstep. */
+  @keyframes titleCycle {
+    0%      { transform: translateY(0);     opacity: 1; }
+    37.5%   { transform: translateY(0);     opacity: 1; animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    43.75%  { transform: translateY(-24px); opacity: 0; animation-timing-function: linear; }
+    50%     { transform: translateY(-40px); opacity: 0; }
+    50.02%  { transform: translateY(56px);  opacity: 0; animation-timing-function: linear; }
+    87.5%   { transform: translateY(56px);  opacity: 0; animation-timing-function: cubic-bezier(.4,0,.2,1); }
+    93.75%  { transform: translateY(20px);  opacity: 0; }
+    100%    { transform: translateY(0);     opacity: 1; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="surface">
+  <h1>Courier Education Prototype</h1>
+  <p class="sub">Toggle between options to see messaging that may surface when couriers open the app.</p>
+
+  <div class="layout-row">
+  <div class="toggle" id="toggleBar">
+    <button data-tab="surge" class="active">Surge</button>
+    <button data-tab="demand">Demand</button>
+    <button data-tab="boost">Boost</button>
+    <button data-tab="lunch">Peak Hours (Lunch)</button>
+    <button data-tab="dinner">Peak Hours (Dinner)</button>
+    <button data-tab="greeting">Greetings</button>
+  </div>
+
+  <div class="toggle toggle-mirror" aria-hidden="true">
+    <button class="active">Surge</button>
+    <button>Demand</button>
+    <button>Boost</button>
+    <button>Peak Hours (Lunch)</button>
+    <button>Peak Hours (Dinner)</button>
+    <button>Greetings</button>
+  </div>
+
+  <div class="phone-shell">
+    <div class="phone">
+      <div class="notch"></div>
+      <!-- ============ SURGE ============ -->
+      <section class="screen active" data-screen="surge">
+        <div class="map-layer">
+          <div class="crop-wrap basemap"><img src="assets/160c352b-8187-47d7-9bcd-13ded5fd1a59.png" /></div>
+          <img class="heatmap small" src="assets/3ded5615-89c9-48f8-b371-5e0c0f617137.png" />
+          <div class="crop-wrap roads"><img src="assets/246f655a-7a47-4b06-b533-dc25adb936d5.png" /></div>
+          <img class="marker" style="left:158px; top:187px; width:88px;" src="assets/d0fe5c99-b82e-4018-8329-cbc270dc9f8b.svg" />
+          <img class="puck" style="left:119px; top:248px; width:72px; height:72px; transform:rotate(6.68deg);" src="assets/4914f839-52b1-42e2-a40b-b6999e7ddf23.png" />
+        </div>
+
+        <div class="icon-btn left plain"><img src="assets/a9dd12db-c8fc-4aa5-ae59-80c5946753f4.svg" /></div>
+        <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
+        <div class="icon-btn right plain"><img src="assets/8548d6ae-1b28-4e57-a92f-22e21c894021.svg" /></div>
+
+        <div class="map-controls">
+          <img class="fab left" src="assets/15dfacb6-c04b-4cca-8f7d-01b0d19ab388.svg" />
+          <img class="fab right" src="assets/6db46741-7698-490f-a09e-6b41b29f6109.svg" />
+        </div>
+        <div class="go-btn">
+          <img src="assets/84a7cdc3-7861-4e98-9749-ff7709eb4534.svg" />
+          <img src="assets/ce4dc8cd-c8f1-46c2-9766-8e5b29d9947b.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <div class="go-label">GO</div>
+        </div>
+
+        <div class="sheet">
+          <div class="grabber"></div>
+          <img class="action-strip" src="assets/69fa2ee8-f8b2-46cf-86a8-796a6e670d57.svg" />
+          <div class="text-stack">
+            <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
+            <div class="swap-anchor">
+              <div class="swap-block">
+                <div class="swap-title">You're in a surge zone</div>
+                <div class="desc">Earn extra $$$ per delivery</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ============ DEMAND ============ -->
+      <section class="screen" data-screen="demand">
+        <div class="map-layer">
+          <div class="crop-wrap basemap"><img src="assets/fdff169d-1c8e-4b58-96a2-b2f1c43d466a.png" /></div>
+          <div class="crop-wrap basemap2"><img src="assets/805bd525-30f9-4d00-a83a-5a6dea6198c9.png" /></div>
+          <div class="crop-wrap roads"><img src="assets/b4982eb6-48be-453d-a20f-72a53ab62d09.png" /></div>
+          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/b934bfc3-2af6-416b-a595-39e6a7ead086.png" />
+        </div>
+
+        <div class="icon-btn left plain"><img src="assets/272b7cd1-e5a1-4273-899e-a742eb796009.svg" /></div>
+        <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
+        <div class="icon-btn right plain"><img src="assets/e349c87a-b1b1-4c3a-b95f-1872db67261b.svg" /></div>
+
+        <div class="map-controls">
+          <img class="fab left" src="assets/3e0525db-1a39-4ba0-8467-f45817ae156d.svg" />
+          <img class="fab right" src="assets/89bed8be-8063-4cb0-ba07-2c53341d62b8.svg" />
+        </div>
+        <div class="go-btn">
+          <img src="assets/bbe46c47-4822-42e8-8b2d-a0575252d403.svg" />
+          <img src="assets/cfbbad4d-b31a-42e3-92f9-bdf8ff026ac1.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <div class="go-label">GO</div>
+        </div>
+
+        <div class="sheet">
+          <div class="grabber"></div>
+          <img class="action-strip" src="assets/48596c0e-ab1f-4bca-b7fe-074f5621b601.svg" />
+          <div class="text-stack">
+            <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
+            <div class="swap-anchor">
+              <div class="swap-block">
+                <div class="swap-title">This area is busy</div>
+                <div class="desc">Lots of delivery requests now</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ============ BOOST ============ -->
+      <section class="screen" data-screen="boost">
+        <div class="map-layer">
+          <div class="crop-wrap basemap"><img src="assets/06911ed4-20f8-4b33-a5f7-bd741fd720b6.png" /></div>
+          <div class="crop-wrap roads"><img src="assets/e58052c3-8b97-4e05-b0f5-026fe9d9aa7e.png" /></div>
+          <img style="position:absolute; left:185px; top:98px; width:175.5px; height:235px; object-fit:cover;" src="assets/ceb8ebf6-3905-48e5-a7ff-2323ff8823e0.png" />
+          <img style="position:absolute; left:212px; top:164px; width:140px; height:86px; object-fit:contain;" src="assets/afa3db42-174a-43de-860c-848d41218663.png" />
+          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/3d8f86f0-3995-4846-bc0b-cf46bf343f01.png" />
+        </div>
+
+        <div class="icon-btn left plain"><img src="assets/b3af9cbb-249e-42b9-a40e-0d7ed8e343f1.svg" /></div>
+        <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
+        <div class="icon-btn right plain"><img src="assets/03a6e31d-944f-4835-a19e-525c500dde95.svg" /></div>
+
+        <div class="map-controls">
+          <img class="fab left" src="assets/5a6a5282-46b3-4950-abd6-2ccc8624ceab.svg" />
+          <img class="fab right" src="assets/7ae23220-73d0-49f5-8903-754ed0278cd8.svg" />
+        </div>
+        <div class="go-btn">
+          <img src="assets/7fe06bf4-6861-43c3-b902-ce7887381b80.svg" />
+          <img src="assets/aacc8c37-98da-44ad-bbb8-77a45f2e1fa5.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <div class="go-label">GO</div>
+        </div>
+
+        <div class="sheet">
+          <div class="grabber"></div>
+          <img class="action-strip" src="assets/b89c6032-26a1-4025-a53d-dbb160046fe6.svg" />
+          <div class="text-stack">
+            <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
+            <div class="swap-anchor">
+              <div class="swap-block">
+                <div class="swap-title">You're in a Boost zone</div>
+                <div class="desc">Earn 1.6x fare until 8pm</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ============ LUNCH ============ -->
+      <section class="screen" data-screen="lunch">
+        <div class="map-layer">
+          <div class="crop-wrap basemap"><img src="assets/094e4923-0a6e-49a6-9ab8-05c2eb36b55d.png" /></div>
+          <div class="crop-wrap roads"><img src="assets/b06a419b-6e9e-409d-b07d-62818a7b6456.png" /></div>
+          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/96c173df-35b7-4a63-9761-02578e40d992.png" />
+        </div>
+
+        <div class="icon-btn left plain"><img src="assets/cd3aac22-8e8d-4510-b530-0e55073c93ad.svg" /></div>
+        <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
+        <div class="icon-btn right plain"><img src="assets/6f12f535-65cc-4535-897b-327399087779.svg" /></div>
+
+        <div class="map-controls">
+          <img class="fab left" src="assets/1959de6b-8e19-4d92-8e3d-6ddd2b6660c8.svg" />
+          <img class="fab right" src="assets/f76debd9-fac2-49df-97c8-fbabb4f714a1.svg" />
+        </div>
+        <div class="go-btn">
+          <img src="assets/dabe47fa-13b4-4187-8edf-8a3d03aa3a2f.svg" />
+          <img src="assets/e4e2c530-a493-40a5-803f-12746f3609f4.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <div class="go-label">GO</div>
+        </div>
+
+        <div class="sheet">
+          <div class="grabber"></div>
+          <img class="action-strip" src="assets/39a67813-7443-41f8-9c6f-8daf2256bfda.svg" />
+          <div class="text-stack">
+            <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
+            <div class="swap-anchor">
+              <div class="swap-block">
+                <div class="swap-title">Customers are hungry!</div>
+                <div class="desc">Lots of lunch orders now</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ============ DINNER ============ -->
+      <section class="screen" data-screen="dinner">
+        <div class="map-layer">
+          <div class="crop-wrap basemap"><img src="assets/02732bed-66c4-4359-b82d-cfdc27713b2a.png" /></div>
+          <div class="crop-wrap roads"><img src="assets/07cc51c1-4247-4754-a8bd-a5acefb609c6.png" /></div>
+          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/f7daa793-4b8f-45b5-9994-a38da7a515ac.png" />
+        </div>
+
+        <div class="icon-btn left plain"><img src="assets/0b698f37-90cb-4904-860f-53845d3b8f3d.svg" /></div>
+        <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
+        <div class="icon-btn right plain"><img src="assets/764a3f3f-6ce5-47fa-9b0b-77d8a585b55a.svg" /></div>
+
+        <div class="map-controls">
+          <img class="fab left" src="assets/eb2eb301-f036-4d18-9584-7cf2e78b5462.svg" />
+          <img class="fab right" src="assets/e964484d-18d9-4d1c-8321-195320c2395c.svg" />
+        </div>
+        <div class="go-btn">
+          <img src="assets/cfaed228-7d7c-4367-8244-89bc4557cd02.svg" />
+          <img src="assets/28ffe615-408f-4e13-a267-ef39ee348780.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <div class="go-label">GO</div>
+        </div>
+
+        <div class="sheet">
+          <div class="grabber"></div>
+          <img class="action-strip" src="assets/e8d56242-7807-4327-908e-e4db2fe5ee82.svg" />
+          <div class="text-stack">
+            <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
+            <div class="swap-anchor">
+              <div class="swap-block">
+                <div class="swap-title">Customers are hungry!</div>
+                <div class="desc">Lots of dinner orders now</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+      <!-- ============ GREETING ============ -->
+      <section class="screen" data-screen="greeting">
+        <div class="map-layer">
+          <div class="crop-wrap basemap"><img src="assets/3fe340da-815d-444f-8f3d-6445989b463d.png" /></div>
+          <div class="crop-wrap roads"><img src="assets/f2cbace2-3fbc-4cad-8ec1-bd8778205529.png" /></div>
+          <img class="puck" style="left:230px; top:248px; width:72px; height:72px;" src="assets/0b4463ee-263f-4ac1-a411-b2956ba12160.png" />
+        </div>
+
+        <div class="icon-btn left plain"><img src="assets/c463fa48-33a9-4433-b156-44e1326f8686.svg" /></div>
+        <div class="header-row"><div class="fare-pill"><span class="dollar">$</span>161.80</div></div>
+        <div class="icon-btn right plain"><img src="assets/78d87b9a-4f9c-4c4f-ba22-e6e465a2de00.svg" /></div>
+
+        <div class="map-controls">
+          <img class="fab left" src="assets/c78b7d5f-eede-4281-8485-bd2a3f2bef22.svg" />
+          <img class="fab right" src="assets/59648459-d8ed-4e61-8c5c-785a97d6f739.svg" />
+        </div>
+        <div class="go-btn">
+          <img src="assets/1f15f99f-b1f7-43ac-af95-306755ece9e0.svg" />
+          <img src="assets/37725025-96ae-4a6d-b034-4ad322c4a69e.svg" style="inset:7px; width:calc(100% - 14px); height:calc(100% - 14px);" />
+          <div class="go-label">GO</div>
+        </div>
+
+        <div class="sheet">
+          <div class="grabber"></div>
+          <img class="action-strip" src="assets/344991e1-34bd-4006-8bf3-2a7a6a17c7f5.svg" />
+          <div class="text-stack">
+            <div class="title-offline-anchor"><div class="title title-offline">You're offline</div></div>
+            <div class="swap-anchor">
+              <div class="swap-block">
+                <div class="swap-title">Hello, Mohammed!</div>
+                <div class="desc">Welcome back</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+  </div>
+
+</div>
+
+<script>
+  const buttons = document.querySelectorAll('.toggle button[data-tab]');
+  const screens = document.querySelectorAll('.screen');
+
+  buttons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = btn.dataset.tab;
+      buttons.forEach(b => b.classList.toggle('active', b === btn));
+      screens.forEach(s => s.classList.toggle('active', s.dataset.screen === target));
+    });
+  });
+</script>
